@@ -9,11 +9,14 @@
 //1) Add a second UIAlertController that gets shown when the user taps a picture, asking them whether they want to rename the person or delete them.
 //2) Try using picker.sourceType = .camera when creating your image picker, which will tell it to create a new image by taking a photo. This is only available on devices (not on the simulator) so you might want to check the return value of UIImagePickerController.isSourceTypeAvailable() before trying to use it!
 //3) Modify project 1 so that it uses a collection view controller rather than a table view controller. I recommend you keep a copy of your original table view controller code so you can refer back to it later on.
+//Hacking with Swift ; Project 12A
 
 import UIKit
 
+
 class MainVC: UICollectionViewController, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate{
 
+    let defaults = UserDefaults.standard
     var people = [Person]()
     
     override func viewDidLoad() {
@@ -122,6 +125,7 @@ class MainVC: UICollectionViewController, UICollectionViewDelegateFlowLayout, UI
             person.name = newName
 
             self?.collectionView.reloadData()
+            self?.save()
         })
         
         ac.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
@@ -130,6 +134,21 @@ class MainVC: UICollectionViewController, UICollectionViewDelegateFlowLayout, UI
         })
         
         present(ac, animated: true)
+    }
+    
+    func save() {
+        if let saveData = try? NSKeyedArchiver.archivedData(withRootObject: people, requiringSecureCoding: false) {
+            let defaults = UserDefaults.standard
+            defaults.set(saveData, forKey: "people")
+        }
+    }
+    
+    func checkUserDefaults() {
+        if let savedPeople = defaults.object(forKey: "people") as? Data {
+            if let decodedPeople = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(savedPeople) as? [Person] {
+                people = decodedPeople
+            }
+        }
     }
     
 }
